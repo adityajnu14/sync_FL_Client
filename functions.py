@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import json
-from load import init
 import base64
 import os
 import tensorflow as tf
@@ -43,8 +42,6 @@ def Train(modelString):
     with open("data/current_model.h5","wb") as file:
         file.write(base64.b64decode(modelString))
     model = load_model("data/current_model.h5")
-    # model.compile(optimizer='adam', loss=tf.keras.losses.CategoricalCrossentropy(), metrics=['accuracy'])
-    # model.summary()
 
     #Reading index to simulate continous learning
     currentIndex = 0
