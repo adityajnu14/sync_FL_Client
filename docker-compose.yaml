@@ -9,7 +9,6 @@
 #     volumes:
 #       - ./data:/app/data
 
-
 version: '3'
 services:
   client:
