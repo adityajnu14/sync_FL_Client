@@ -102,7 +102,6 @@ def Train(modelString):
         encoded_string = base64.b64encode(file.read())
     
     print("Local training completed")
-    print("Extra lines")
     return encoded_string
 
 
