@@ -1,19 +1,19 @@
-version: '3'
-services:
-  client:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./data:/app/data
-
 # version: '3'
 # services:
 #   client:
-#     image: adityajnu14/client_x86_64
+#     build:
+#       context: .
+#       dockerfile: Dockerfile
 #     ports:
 #       - "8080:8080"
 #     volumes:
 #       - ./data:/app/data
+
+version: '3'
+services:
+  client:
+    image: adityajnu14/client_x86_64
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/app/data
