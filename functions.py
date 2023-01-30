@@ -38,46 +38,49 @@ def Train(modelString):
     print("Starting training...")
 
     continousTrainingBatchSize = 60
-    #get latest model from own directory
-    with open("data/current_model.h5","wb") as file:
-        file.write(base64.b64decode(modelString))
-    model = load_model("data/current_model.h5")
+    try :
+        #get latest model from own directory
+        with open("data/current_model.h5","wb") as file:
+            file.write(base64.b64decode(modelString))
+        model = load_model("data/current_model.h5")
 
-    #Reading index to simulate continous learning
-    currentIndex = 0
-    with open('data/indexFile.txt', "r+") as f:
-        fileIndex = json.load(f)
-        currentIndex = fileIndex['index']
+        #Reading index to simulate continous learning
+        currentIndex = 0
+        with open('data/indexFile.txt', "r+") as f:
+            fileIndex = json.load(f)
+            currentIndex = fileIndex['index']
 
-    print("Current Index is ", currentIndex)
+        print("Current Index is ", currentIndex)
 
-    data = pd.read_csv('data/data.csv')
-    
-    totalRowCount = data.shape[0]
-    nextIndex = currentIndex + continousTrainingBatchSize if currentIndex + continousTrainingBatchSize < totalRowCount else totalRowCount
-    X = data.iloc[currentIndex:nextIndex,1:-1].values
-    y = data.iloc[currentIndex:nextIndex,-1].values
-    y = to_categorical(y)
+        data = pd.read_csv('data/data.csv')
+        
+        totalRowCount = data.shape[0]
+        nextIndex = currentIndex + continousTrainingBatchSize if currentIndex + continousTrainingBatchSize < totalRowCount else totalRowCount
+        X = data.iloc[currentIndex:nextIndex,1:-1].values
+        y = data.iloc[currentIndex:nextIndex,-1].values
+        y = to_categorical(y)
 
-    #print("Dimension of current data ", X.shape)
+        #print("Dimension of current data ", X.shape)
 
-    #Updating Index
-    if nextIndex == totalRowCount:
-        nextIndex = 0
-    with open('data/indexFile.txt', "w") as f: 
-        index = {'index' : nextIndex}
-        f.write(json.dumps(index))
-
-
-    #Printing aggregated global model metrics
-    score = model.evaluate(X, y, verbose=0)
-    print("Global model loss : {} Global model accuracy : {}".format(score[0], score[1]))
-    
-    saveLearntMetrice('data/metrics.txt', score)
+        #Updating Index
+        if nextIndex == totalRowCount:
+            nextIndex = 0
+        with open('data/indexFile.txt', "w") as f: 
+            index = {'index' : nextIndex}
+            f.write(json.dumps(index))
 
 
-    model.fit(X, y, epochs=5, verbose=0)
-           
+        #Printing aggregated global model metrics
+        score = model.evaluate(X, y, verbose=0)
+        print("Global model loss : {} Global model accuracy : {}".format(score[0], score[1]))
+        
+        saveLearntMetrice('data/metrics.txt', score)
+
+        model.fit(X, y, batch_size=32, epochs=16, shuffle=True, verbose=0)
+    except Exception as e:
+        print(e)
+        print("Error in training in current iteration")
+        return modelString  
     #Printing loss and accuracy after training 
     score = model.evaluate(X, y, verbose=0)
     print("Local model loss : {} Local model accuracy : {}".format(score[0], score[1]))
