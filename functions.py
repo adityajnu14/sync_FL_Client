@@ -36,14 +36,16 @@ def Train(modelString):
     
 
     print("Starting training...")
-    flag = True #Flag is for stream data or noram FL
-    continousTrainingBatchSize = 60
+    flag = False #Flag is for stream data or noram FL
     try :
         #get latest model from own directory
         with open("data/current_model.h5","wb") as file:
             file.write(base64.b64decode(modelString))
         model = load_model("data/current_model.h5")
+        X, y = [], []
         if flag :
+            continousTrainingBatchSize = 60
+
             #Reading index to simulate continous learning
             currentIndex = 0
             with open('data/indexFile.txt', "r+") as f:
