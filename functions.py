@@ -36,38 +36,47 @@ def Train(modelString):
     
 
     print("Starting training...")
-
+    flag = True #Flag is for stream data or noram FL
     continousTrainingBatchSize = 60
     try :
         #get latest model from own directory
         with open("data/current_model.h5","wb") as file:
             file.write(base64.b64decode(modelString))
         model = load_model("data/current_model.h5")
+        if flag :
+            #Reading index to simulate continous learning
+            currentIndex = 0
+            with open('data/indexFile.txt', "r+") as f:
+                fileIndex = json.load(f)
+                currentIndex = fileIndex['index']
 
-        #Reading index to simulate continous learning
-        currentIndex = 0
-        with open('data/indexFile.txt', "r+") as f:
-            fileIndex = json.load(f)
-            currentIndex = fileIndex['index']
+            print("Current Index is ", currentIndex)
 
-        print("Current Index is ", currentIndex)
+            data = pd.read_csv('data/data.csv')
+            
+            totalRowCount = data.shape[0]
+            nextIndex = currentIndex + continousTrainingBatchSize if currentIndex + continousTrainingBatchSize < totalRowCount else totalRowCount
+            X = data.iloc[currentIndex:nextIndex,1:-1].values
+            y = data.iloc[currentIndex:nextIndex,-1].values
+            y = to_categorical(y)
 
-        data = pd.read_csv('data/data.csv')
-        
-        totalRowCount = data.shape[0]
-        nextIndex = currentIndex + continousTrainingBatchSize if currentIndex + continousTrainingBatchSize < totalRowCount else totalRowCount
-        X = data.iloc[currentIndex:nextIndex,1:-1].values
-        y = data.iloc[currentIndex:nextIndex,-1].values
-        y = to_categorical(y)
+            #print("Dimension of current data ", X.shape)
 
-        #print("Dimension of current data ", X.shape)
+            #Updating Index
+            if nextIndex == totalRowCount:
+                nextIndex = 0
+            with open('data/indexFile.txt', "w") as f: 
+                index = {'index' : nextIndex}
+                f.write(json.dumps(index))
+        else :
+            
+            data = pd.read_csv('data/data.csv')
+            X = data.iloc[:,1:-1].values
+            y = data.iloc[:,-1].values
+            y = to_categorical(y)
 
-        #Updating Index
-        if nextIndex == totalRowCount:
-            nextIndex = 0
-        with open('data/indexFile.txt', "w") as f: 
-            index = {'index' : nextIndex}
-            f.write(json.dumps(index))
+        print("Shape of the data is ", X.shape, y.shape)
+
 
 
         #Printing aggregated global model metrics
